@@ -439,10 +439,8 @@ func (r *PrRepository) CountReviewersByPRID(ctx context.Context, prID string) (i
 
 // ==================== Stats Repository Methods ====================
 
+// GetReviewerStats получает статистику по ревьюверам (кол-во назначений)
 func (r *PrRepository) GetReviewerStats(ctx context.Context) ([]ReviewerStatRow, error) {
-	// SELECT user_id, username, COUNT(*) as assigned_count FROM users u
-	// LEFT JOIN pr_reviewers pr ON u.user_id = pr.reviewer_user_id
-	// GROUP BY u.user_id, u.username ORDER BY assigned_count DESC
 	sql, args, err := r.psql.Select("u.user_id", "u.username", "COUNT(pr.id) as assigned_count").
 		From("users u").
 		LeftJoin("pr_reviewers pr ON u.user_id = pr.reviewer_user_id").
@@ -473,12 +471,8 @@ func (r *PrRepository) GetReviewerStats(ctx context.Context) ([]ReviewerStatRow,
 	return stats, nil
 }
 
+// GetPRStats получает статистику по Pull Requests (кол-во назначенных ревьюверов)
 func (r *PrRepository) GetPRStats(ctx context.Context) ([]PRStatRow, error) {
-	// SELECT pull_request_id, pull_request_name, author_id, status, COUNT(pr.id) as reviewer_count
-	// FROM pull_requests p
-	// LEFT JOIN pr_reviewers pr ON p.pull_request_id = pr.pull_request_id
-	// GROUP BY p.id, p.pull_request_id, p.pull_request_name, p.author_id, p.status
-	// ORDER BY reviewer_count DESC
 	sql, args, err := r.psql.Select("p.pull_request_id", "p.pull_request_name", "p.author_id", "p.status", "COUNT(pr.id) as reviewer_count").
 		From("pull_requests p").
 		LeftJoin("pr_reviewers pr ON p.pull_request_id = pr.pull_request_id").
