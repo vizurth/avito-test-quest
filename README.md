@@ -415,14 +415,6 @@ make format
 make test-integration
 ```
 
-**Включённые проверки:**
-
-- **Correctness** — errcheck, staticcheck, unused (обнаружение ошибок)
-- **Style** — gofmt, goimports, gosimple, stylecheck (стиль кода)
-- **Readability** — gosec, godox, misspell (безопасность и читаемость)
-- **Performance** — prealloc (оптимизация)
-- **Complexity** — cyclop, gocognit, nestif (сложность кода)
-
 ## База данных
 
 ### Таблицы
