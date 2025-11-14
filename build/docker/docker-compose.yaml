@@ -19,6 +19,6 @@ services:
     container_name: avito-service
     restart: on-failure
     ports:
-      - "9091:9091"
+      - "8080:8080"
     depends_on:
       - postgres
