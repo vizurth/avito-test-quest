@@ -415,8 +415,6 @@ make format
 make test-integration
 ```
 
-```bash
-
 **Включённые проверки:**
 
 - **Correctness** — errcheck, staticcheck, unused (обнаружение ошибок)
