@@ -38,5 +38,8 @@ cover:
 	go tool cover -html=coverage.out
 	rm coverage.out
 
-
+.PHONY: test-integration
+test-integration:
+	@echo "Running integration tests..."
+	go test -v -count=1 ./tests/integration/... -timeout 5m
 
