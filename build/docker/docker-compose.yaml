@@ -1,0 +1,24 @@
+volumes:
+  postgres_data:
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: avito-user
+      POSTGRES_PASSWORD: avito-password
+      POSTGRES_DB: avito
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  avito-service:
+    build:
+      context: ../../
+      dockerfile: build/docker/pr.Dockerfile
+    container_name: avito-service
+    restart: on-failure
+    ports:
+      - "9091:9091"
+    depends_on:
+      - postgres
