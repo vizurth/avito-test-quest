@@ -409,6 +409,14 @@ make lint-fix
 make format
 ```
 
+**Тестирование кода**
+```bash
+# Запустить интеграционные-тесты
+make test-integration
+```
+
+```bash
+
 **Включённые проверки:**
 
 - **Correctness** — errcheck, staticcheck, unused (обнаружение ошибок)
