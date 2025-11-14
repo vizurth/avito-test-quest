@@ -58,8 +58,12 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	httpHandler.InitRoutes()
 
 	srv := &http.Server{
-		Addr:    ":" + cfg.PR.Port,
-		Handler: router,
+		Addr:              ":" + cfg.PR.Port,
+		Handler:           router,
+		ReadTimeout:       10 * time.Second,  // общее время на чтение запроса
+		ReadHeaderTimeout: 5 * time.Second,   // время на чтение заголовков
+		WriteTimeout:      30 * time.Second,  // время на запись ответа
+		IdleTimeout:       120 * time.Second, // время простоя соединения
 	}
 
 	return &App{
@@ -92,7 +96,7 @@ func (a *App) Shutdown(ctx context.Context) error {
 
 // Run запускает HTTP сервер
 func (a *App) Run(ctx context.Context) error {
-	a.log.Info(ctx, "starting HTTP server", zap.String("addr", fmt.Sprintf(":%d", a.config.PR.Port)))
+	a.log.Info(ctx, "starting HTTP server", zap.String("addr", fmt.Sprintf(":%s", a.config.PR.Port)))
 
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

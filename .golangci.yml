@@ -1,0 +1,75 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+  allow-parallel-runners: false
+
+output:
+  format: colored-line-number
+  sort-results: true
+
+linters:
+  enable:
+    - staticcheck # Статический анализ кода (SA проблемы)
+    - unused # Проверка неиспользуемых переменных, функций и типов
+
+    - gofmt # Форматирование кода
+    - goimports # Сортировка импортов
+    - gosimple # Упрощение кода (S проблемы)
+    - stylecheck # Проверка стиля кода (ST проблемы)
+
+    - gosec # Проверка безопасности кода
+    - godox # Проверка TODO, FIXME комментариев
+    - misspell # Проверка орфографии в комментариях и строках
+    - ineffassign # Обнаружение неэффективных присваиваний
+    - unconvert # Обнаружение ненужных конвертаций типов
+
+    - cyclop # Проверка циклической сложности
+    - nestif # Проверка глубины вложенности if-ов
+
+linters-settings:
+  cyclop:
+    max-complexity: 15
+
+  gocognit:
+    min-complexity: 15
+
+  nestif:
+    min-complexity: 4
+
+  staticcheck:
+    strict-mode: true
+
+  misspell:
+    locale: US
+
+  godox:
+    keywords:
+      - BUG
+      - FIXME
+      - TODO
+      - HACK
+
+issues:
+  exclude-rules:
+    - source: "^//\\s*nolint"
+      linters:
+        - staticcheck
+        - unused
+        - gosec
+        - misspell
+
+    - path: "_test\\.go"
+      linters:
+        - gosec
+
+    - path: "_test\\.go"
+      text: 'G101'
+
+    - source: '^// Code generated'
+      linters:
+        - unused
+        - ineffassign
+
+  max-same-issues: 0
+  max-issues-per-linter: 0

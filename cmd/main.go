@@ -24,5 +24,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	application.Run(ctx)
+	err = application.Run(ctx)
+	if err != nil {
+		logger.GetOrCreateLoggerFromCtx(ctx).Fatal(ctx, "failed with app", zap.Error(err))
+	}
 }

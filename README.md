@@ -74,7 +74,6 @@ build/           # Docker файлы
 }
 ```
 
-
 #### `GET /team/get?team_name=<name>` — Получить команду по имени
 
 Возвращает информацию о команде со списком всех её участников. Если команда не найдена, возвращает `NOT_FOUND`.
@@ -94,7 +93,6 @@ build/           # Docker файлы
 	]
 }
 ```
-
 
 ### Users
 
@@ -123,7 +121,6 @@ build/           # Docker файлы
 	}
 }
 ```
-
 
 #### `GET /users/getReview?user_id=<id>` — Получить PR, где пользователь назначен ревьювером
 
@@ -154,7 +151,6 @@ build/           # Docker файлы
 	]
 }
 ```
-
 
 ### Pull Requests
 
@@ -188,7 +184,6 @@ build/           # Docker файлы
 }
 ```
 
-
 #### `POST /pullRequest/merge` — Пометить PR как merged
 
 Изменяет статус PR на `MERGED` и устанавливает время мержа. Операция **идемпотентна** — если PR уже в статусе MERGED, просто возвращает текущее состояние. Если PR не найден, возвращает `NOT_FOUND`. Требует Admin токен.
@@ -216,7 +211,6 @@ build/           # Docker файлы
 	}
 }
 ```
-
 
 #### `POST /pullRequest/reassign` — Переназначить ревьювера
 
@@ -257,7 +251,6 @@ build/           # Docker файлы
 }
 ```
 
-
 ### Health
 
 #### `GET /health` — Проверка состояния сервиса
@@ -271,7 +264,6 @@ build/           # Docker файлы
 	"status": "ok"
 }
 ```
-
 
 ### Statistics
 
@@ -358,6 +350,8 @@ build/           # Docker файлы
 
 - Docker и Docker Compose
 - Makefile (для управления сервисом)
+- Go 1.21+
+- golangci-lint (устанавливается через `make install-golangci-lint`)
 
 ## Установка и запуск
 
@@ -389,6 +383,39 @@ make build_and
 Сервис запустится на `http://localhost:8080`.
 
 Все миграции БД применяются автоматически при запуске приложения через `golang-migrate`.
+
+## Разработка
+
+### Линтинг кода
+
+Проект использует `golangci-lint` для проверки качества кода. Конфигурация находится в файле `.golangci.yml`.
+
+**Установка golangci-lint:**
+
+```bash
+make install-golangci-lint
+```
+
+**Проверка кода:**
+
+```bash
+# Запустить линтер
+make lint
+
+# Исправить автоматически исправляемые ошибки
+make lint-fix
+
+# Отформатировать код
+make format
+```
+
+**Включённые проверки:**
+
+- **Correctness** — errcheck, staticcheck, unused (обнаружение ошибок)
+- **Style** — gofmt, goimports, gosimple, stylecheck (стиль кода)
+- **Readability** — gosec, godox, misspell (безопасность и читаемость)
+- **Performance** — prealloc (оптимизация)
+- **Complexity** — cyclop, gocognit, nestif (сложность кода)
 
 ## База данных
 

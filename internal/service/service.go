@@ -217,7 +217,6 @@ func (s *PrService) MergePullRequest(ctx context.Context, input models.MergePull
 	}
 	// идемпотентность
 	if pr.Status == "MERGED" {
-		// build response
 		reviewers, _ := s.repo.GetReviewersByPRID(ctx, input.PullRequestID)
 		var createdAt *string
 		if !pr.CreatedAt.IsZero() {
@@ -334,21 +333,21 @@ func (s *PrService) ReassignReviewer(ctx context.Context, input models.ReassignR
 
 func (s *PrService) GetStats(ctx context.Context) (*models.StatsOutput, error) {
 	log := logger.GetOrCreateLoggerFromCtx(ctx)
-	
+
 	// получаем статистику ревьюверов
 	reviewerStatsRaw, err := s.repo.GetReviewerStats(ctx)
 	if err != nil {
 		log.Error(ctx, "failed to get reviewer stats", zap.Error(err))
 		return nil, err
 	}
-	
+
 	// получаем статистику PR
 	prStatsRaw, err := s.repo.GetPRStats(ctx)
 	if err != nil {
 		log.Error(ctx, "failed to get pr stats", zap.Error(err))
 		return nil, err
 	}
-	
+
 	// преобразуем статистику ревьюверов
 	var reviewerStats []models.ReviewerStat
 	for _, row := range reviewerStatsRaw {
@@ -358,7 +357,7 @@ func (s *PrService) GetStats(ctx context.Context) (*models.StatsOutput, error) {
 			AssignedCount: row.AssignedCount,
 		})
 	}
-	
+
 	// преобразуем статистику PR
 	var prStats []models.PRStat
 	for _, row := range prStatsRaw {
@@ -370,7 +369,7 @@ func (s *PrService) GetStats(ctx context.Context) (*models.StatsOutput, error) {
 			ReviewerCount:   row.ReviewerCount,
 		})
 	}
-	
+
 	return &models.StatsOutput{
 		ReviewerStats: reviewerStats,
 		PRStats:       prStats,
@@ -379,4 +378,3 @@ func (s *PrService) GetStats(ctx context.Context) (*models.StatsOutput, error) {
 
 // проверка реализации интерфейса Service
 var _ Service = (*PrService)(nil)
-
