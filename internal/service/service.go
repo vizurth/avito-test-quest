@@ -330,5 +330,53 @@ func (s *PrService) ReassignReviewer(ctx context.Context, input models.ReassignR
 	return &models.ReassignReviewerOutput{PR: outPR, ReplacedBy: *chosen}, nil
 }
 
+// ==================== Stats Service Methods ====================
+
+func (s *PrService) GetStats(ctx context.Context) (*models.StatsOutput, error) {
+	log := logger.GetOrCreateLoggerFromCtx(ctx)
+	
+	// получаем статистику ревьюверов
+	reviewerStatsRaw, err := s.repo.GetReviewerStats(ctx)
+	if err != nil {
+		log.Error(ctx, "failed to get reviewer stats", zap.Error(err))
+		return nil, err
+	}
+	
+	// получаем статистику PR
+	prStatsRaw, err := s.repo.GetPRStats(ctx)
+	if err != nil {
+		log.Error(ctx, "failed to get pr stats", zap.Error(err))
+		return nil, err
+	}
+	
+	// преобразуем статистику ревьюверов
+	var reviewerStats []models.ReviewerStat
+	for _, row := range reviewerStatsRaw {
+		reviewerStats = append(reviewerStats, models.ReviewerStat{
+			UserID:        row.UserID,
+			Username:      row.Username,
+			AssignedCount: row.AssignedCount,
+		})
+	}
+	
+	// преобразуем статистику PR
+	var prStats []models.PRStat
+	for _, row := range prStatsRaw {
+		prStats = append(prStats, models.PRStat{
+			PullRequestID:   row.PullRequestID,
+			PullRequestName: row.PullRequestName,
+			AuthorID:        row.AuthorID,
+			Status:          row.Status,
+			ReviewerCount:   row.ReviewerCount,
+		})
+	}
+	
+	return &models.StatsOutput{
+		ReviewerStats: reviewerStats,
+		PRStats:       prStats,
+	}, nil
+}
+
 // проверка реализации интерфейса Service
 var _ Service = (*PrService)(nil)
+

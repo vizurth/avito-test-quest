@@ -43,9 +43,16 @@ type PullRequestService interface {
 	ReassignReviewer(ctx context.Context, input models.ReassignReviewerInput) (*models.ReassignReviewerOutput, error)
 }
 
+// StatsService интерфейс для получения статистики
+type StatsService interface {
+	// GetStats получает статистику по ревьюверам и PR
+	GetStats(ctx context.Context) (*models.StatsOutput, error)
+}
+
 // Service объединяет все сервисные интерфейсы
 type Service interface {
 	TeamService
 	UserService
 	PullRequestService
+	StatsService
 }

@@ -170,10 +170,34 @@ type DB interface {
 	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 }
 
+type ReviewerStatRow struct {
+	UserID        string
+	Username      string
+	AssignedCount int
+}
+
+type PRStatRow struct {
+	PullRequestID   string
+	PullRequestName string
+	AuthorID        string
+	Status          string
+	ReviewerCount   int
+}
+
+// StatsRepository интерфейс для получения статистики
+type StatsRepository interface {
+	// GetReviewerStats получает статистику по ревьюверам (кол-во назначений)
+	GetReviewerStats(ctx context.Context) ([]ReviewerStatRow, error)
+
+	// GetPRStats получает статистику по PR (кол-во ревьюверов)
+	GetPRStats(ctx context.Context) ([]PRStatRow, error)
+}
+
 // Repository объединяет все репозиторные интерфейсы
 type Repository interface {
 	TeamRepository
 	UserRepository
 	PullRequestRepository
 	PRReviewerRepository
+	StatsRepository
 }

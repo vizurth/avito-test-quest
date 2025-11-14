@@ -50,6 +50,9 @@ func (h *PrHandler) InitRoutes() {
 		prGroup.POST("/merge", h.MergePullRequest)    // только для админов (если будет аутентификация)
 		prGroup.POST("/reassign", h.ReassignReviewer) // только для админов (если будет аутентификация)
 	}
+
+	// Stats endpoint
+	h.router.GET("/stats", h.GetStats)
 }
 
 // ==================== Team Handlers ====================
@@ -255,6 +258,23 @@ func (h *PrHandler) ReassignReviewer(c *gin.Context) {
 // HealthCheck проверка здоровья сервиса
 func (h *PrHandler) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+// ==================== Stats Handler ====================
+
+// GetStats получить статистику по ревьюверам и PR
+func (h *PrHandler) GetStats(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.GetOrCreateLoggerFromCtx(ctx)
+
+	stats, err := h.service.GetStats(ctx)
+	if err != nil {
+		log.Error(ctx, "failed to get stats", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
 }
 
 // проверка реализации интерфейса AllHandlers

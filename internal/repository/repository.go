@@ -437,5 +437,77 @@ func (r *PrRepository) CountReviewersByPRID(ctx context.Context, prID string) (i
 	return cnt, nil
 }
 
+// ==================== Stats Repository Methods ====================
+
+func (r *PrRepository) GetReviewerStats(ctx context.Context) ([]ReviewerStatRow, error) {
+	// SELECT user_id, username, COUNT(*) as assigned_count FROM users u
+	// LEFT JOIN pr_reviewers pr ON u.user_id = pr.reviewer_user_id
+	// GROUP BY u.user_id, u.username ORDER BY assigned_count DESC
+	sql, args, err := r.psql.Select("u.user_id", "u.username", "COUNT(pr.id) as assigned_count").
+		From("users u").
+		LeftJoin("pr_reviewers pr ON u.user_id = pr.reviewer_user_id").
+		GroupBy("u.user_id", "u.username").
+		OrderBy("assigned_count DESC").
+		ToSql()
+	if err != nil {
+		logger.GetOrCreateLoggerFromCtx(ctx).Error(ctx, "failed to build sql for GetReviewerStats", zap.Error(err))
+		return nil, err
+	}
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		logger.GetOrCreateLoggerFromCtx(ctx).Error(ctx, "failed to query reviewer stats", zap.Error(err))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []ReviewerStatRow
+	for rows.Next() {
+		var stat ReviewerStatRow
+		if err := rows.Scan(&stat.UserID, &stat.Username, &stat.AssignedCount); err != nil {
+			logger.GetOrCreateLoggerFromCtx(ctx).Error(ctx, "failed to scan reviewer stat", zap.Error(err))
+			return nil, err
+		}
+		stats = append(stats, stat)
+	}
+	return stats, nil
+}
+
+func (r *PrRepository) GetPRStats(ctx context.Context) ([]PRStatRow, error) {
+	// SELECT pull_request_id, pull_request_name, author_id, status, COUNT(pr.id) as reviewer_count
+	// FROM pull_requests p
+	// LEFT JOIN pr_reviewers pr ON p.pull_request_id = pr.pull_request_id
+	// GROUP BY p.id, p.pull_request_id, p.pull_request_name, p.author_id, p.status
+	// ORDER BY reviewer_count DESC
+	sql, args, err := r.psql.Select("p.pull_request_id", "p.pull_request_name", "p.author_id", "p.status", "COUNT(pr.id) as reviewer_count").
+		From("pull_requests p").
+		LeftJoin("pr_reviewers pr ON p.pull_request_id = pr.pull_request_id").
+		GroupBy("p.id", "p.pull_request_id", "p.pull_request_name", "p.author_id", "p.status").
+		OrderBy("reviewer_count DESC").
+		ToSql()
+	if err != nil {
+		logger.GetOrCreateLoggerFromCtx(ctx).Error(ctx, "failed to build sql for GetPRStats", zap.Error(err))
+		return nil, err
+	}
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		logger.GetOrCreateLoggerFromCtx(ctx).Error(ctx, "failed to query pr stats", zap.Error(err))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []PRStatRow
+	for rows.Next() {
+		var stat PRStatRow
+		if err := rows.Scan(&stat.PullRequestID, &stat.PullRequestName, &stat.AuthorID, &stat.Status, &stat.ReviewerCount); err != nil {
+			logger.GetOrCreateLoggerFromCtx(ctx).Error(ctx, "failed to scan pr stat", zap.Error(err))
+			return nil, err
+		}
+		stats = append(stats, stat)
+	}
+	return stats, nil
+}
+
 // проверка реализации интерфейса Repository
 var _ Repository = (*PrRepository)(nil)

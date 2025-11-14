@@ -54,6 +54,13 @@ type HealthHandler interface {
 	HealthCheck(c *gin.Context)
 }
 
+// StatsHandler интерфейс для получения статистики
+type StatsHandler interface {
+	// GetStats GET /stats
+	// Получить статистику по ревьюверам и PR
+	GetStats(c *gin.Context)
+}
+
 // AllHandlers объединяет все handler интерфейсы
 type AllHandlers interface {
 	Handler
@@ -61,4 +68,5 @@ type AllHandlers interface {
 	UserHandler
 	PullRequestHandler
 	HealthHandler
+	StatsHandler
 }
