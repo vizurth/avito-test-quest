@@ -21,6 +21,7 @@ import (
 	"net/http"
 )
 
+// App представляет основное приложение
 type App struct {
 	config *config.Config
 	log    *logger.Logger
@@ -28,6 +29,7 @@ type App struct {
 	server *http.Server
 }
 
+// New инициализирует приложение
 func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	ctx, _, err := logger.New(ctx)
 	if err != nil {
@@ -68,21 +70,19 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	}, nil
 }
 
+// Shutdown выполняет graceful shutdown приложения
 func (a *App) Shutdown(ctx context.Context) error {
 	a.log.Info(ctx, "starting graceful shutdown...")
 
-	// Создаем контекст с таймаутом для shutdown
 	shutdownCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	// Останавливаем HTTP сервер
 	if err := a.server.Shutdown(shutdownCtx); err != nil {
 		a.log.Error(ctx, "failed to shutdown HTTP server", zap.Error(err))
 		return fmt.Errorf("http server shutdown failed: %w", err)
 	}
 	a.log.Info(ctx, "HTTP server shutdown successfully")
 
-	// Закрываем пул соединений БД
 	a.pool.Close()
 	a.log.Info(ctx, "database pool closed successfully")
 
@@ -94,7 +94,6 @@ func (a *App) Shutdown(ctx context.Context) error {
 func (a *App) Run(ctx context.Context) error {
 	a.log.Info(ctx, "starting HTTP server", zap.String("addr", fmt.Sprintf(":%d", a.config.PR.Port)))
 
-	// Запускаем сервер в отдельной горутине
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			a.log.Error(ctx, "HTTP server error", zap.Error(err))
@@ -103,7 +102,6 @@ func (a *App) Run(ctx context.Context) error {
 
 	a.log.Info(ctx, "HTTP server started successfully")
 
-	// Ожидаем сигнал для graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 

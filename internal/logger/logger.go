@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+
 	"go.uber.org/zap"
 )
 
@@ -12,10 +13,12 @@ const (
 	KeyForRequestID key = "requestID"
 )
 
+// Logger обёртка над zap.Logger
 type Logger struct {
 	l *zap.Logger
 }
 
+// New создаёт новый логгер и добавляет его в контекст
 func New(ctx context.Context) (context.Context, *Logger, error) {
 	l, err := zap.NewProduction()
 	if err != nil {
@@ -43,6 +46,7 @@ func GetOrCreateLoggerFromCtx(ctx context.Context) *Logger {
 	return &Logger{l: l}
 }
 
+// Debug логирует сообщение уровня Debug с полями
 func (l *Logger) Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	if ctx.Value(KeyForRequestID) != nil {
 		fields = append(fields, zap.String(string(KeyForRequestID), ctx.Value(KeyForRequestID).(string)))
@@ -50,6 +54,7 @@ func (l *Logger) Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	l.l.Debug(msg, fields...)
 }
 
+// Info логирует сообщение уровня Info с полями
 func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
 	if ctx.Value(KeyForRequestID) != nil {
 		fields = append(fields, zap.String(string(KeyForRequestID), ctx.Value(KeyForRequestID).(string)))
@@ -57,6 +62,7 @@ func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
 	l.l.Info(msg, fields...)
 }
 
+// Warn логирует сообщение уровня Warn с полями
 func (l *Logger) Warn(ctx context.Context, msg string, fields ...zap.Field) {
 	if ctx.Value(KeyForRequestID) != nil {
 		fields = append(fields, zap.String(string(KeyForRequestID), ctx.Value(KeyForRequestID).(string)))
@@ -64,12 +70,15 @@ func (l *Logger) Warn(ctx context.Context, msg string, fields ...zap.Field) {
 	l.l.Warn(msg, fields...)
 }
 
+// Error логирует сообщение уровня Error с полями
 func (l *Logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
 	if ctx.Value(KeyForRequestID) != nil {
 		fields = append(fields, zap.String(string(KeyForRequestID), ctx.Value(KeyForRequestID).(string)))
 	}
 	l.l.Error(msg, fields...)
 }
+
+// Fatal логирует сообщение уровня Fatal с полями и завершает программу
 func (l *Logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	if ctx.Value(KeyForRequestID) != nil {
 		fields = append(fields, zap.String(string(KeyForRequestID), ctx.Value(KeyForRequestID).(string)))

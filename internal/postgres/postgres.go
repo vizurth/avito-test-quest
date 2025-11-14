@@ -5,14 +5,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
-	"time"
 )
 
+// Config содержит настройки для подключения к Postgres
 type Config struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
@@ -23,13 +25,16 @@ type Config struct {
 	MinConns int32  `yaml:"min_conns" env:"MIN_CONNS" env-default:"5"`
 }
 
+// New создает новое подключение к Postgres
 func New(ctx context.Context, cfg Config) (*pgxpool.Pool, error) {
+	// создаем строку подключения с параметрами пула
 	connString := cfg.GetConnString()
 	connString += fmt.Sprintf("&pool_max_conns=%d&pool_min_conns=%d",
 		cfg.MaxConns,
 		cfg.MinConns,
 	)
 
+	// создаем пул подключений
 	conn, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
@@ -38,16 +43,20 @@ func New(ctx context.Context, cfg Config) (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
+// Migrate выполняет миграции базы данных Postgres
 func Migrate(ctx context.Context, cfg Config) error {
+	// создаем строку подключения
 	connString := cfg.GetConnString()
 	log := logger.GetOrCreateLoggerFromCtx(ctx)
 
+	// создаем миграции
 	m, err := migrate.New("file://migrations", connString)
 
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
 	}
 
+	// пытаемся выполнить миграции с ретраями
 	retries := 5
 	for i := 0; i < retries; i++ {
 		err = m.Up()
@@ -65,6 +74,7 @@ func Migrate(ctx context.Context, cfg Config) error {
 	return nil
 }
 
+// GetConnString формирует строку подключения к Postgres
 func (c *Config) GetConnString() string {
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		c.Username,

@@ -29,40 +29,43 @@ func (h *PrHandler) InitRoutes() {
 	// Health check
 	h.router.GET("/health", h.HealthCheck)
 
-	// Teams endpoints
+	// ручки Teams
 	teamGroup := h.router.Group("/team")
 	{
 		teamGroup.POST("/add", h.CreateTeam)
 		teamGroup.GET("/get", h.GetTeam)
 	}
 
-	// Users endpoints
+	// ручки Users
 	usersGroup := h.router.Group("/users")
 	{
-		usersGroup.POST("/setIsActive", h.SetIsActive) // Admin only
+		usersGroup.POST("/setIsActive", h.SetIsActive) // только для админов (если будет аутентификация)
 		usersGroup.GET("/getReview", h.GetUserReviews)
 	}
 
-	// Pull Requests endpoints
+	// ручки Pull Requests
 	prGroup := h.router.Group("/pullRequest")
 	{
-		prGroup.POST("/create", h.CreatePullRequest)  // Admin only
-		prGroup.POST("/merge", h.MergePullRequest)    // Admin only
-		prGroup.POST("/reassign", h.ReassignReviewer) // Admin only
+		prGroup.POST("/create", h.CreatePullRequest)  // только для админов (если будет аутентификация)
+		prGroup.POST("/merge", h.MergePullRequest)    // только для админов (если будет аутентификация)
+		prGroup.POST("/reassign", h.ReassignReviewer) // только для админов (если будет аутентификация)
 	}
 }
 
 // ==================== Team Handlers ====================
 
+// CreateTeam создает команду с участниками
 func (h *PrHandler) CreateTeam(c *gin.Context) {
 	var input models.CreateTeamInput
 	ctx := c.Request.Context()
+
 	log := logger.GetOrCreateLoggerFromCtx(ctx)
 	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Warn(ctx, "invalid create team request", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// создаем команду
 	tm, err := h.service.CreateTeam(ctx, input)
 	if err != nil {
 		switch err.Error() {
@@ -75,9 +78,11 @@ func (h *PrHandler) CreateTeam(c *gin.Context) {
 			return
 		}
 	}
+
 	c.JSON(http.StatusCreated, gin.H{"team": tm})
 }
 
+// GetTeam получает команду по имени
 func (h *PrHandler) GetTeam(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.GetOrCreateLoggerFromCtx(ctx)
@@ -86,6 +91,7 @@ func (h *PrHandler) GetTeam(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "NOT_FOUND", "message": "team_name required"}})
 		return
 	}
+	// получаем команду
 	tm, err := h.service.GetTeam(ctx, teamName)
 	if err != nil {
 		if err.Error() == "NOT_FOUND" {
@@ -96,11 +102,13 @@ func (h *PrHandler) GetTeam(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, tm)
 }
 
 // ==================== User Handlers ====================
 
+// SetIsActive устанавливает флаг активности пользователя
 func (h *PrHandler) SetIsActive(c *gin.Context) {
 	var input models.SetIsActiveInput
 	ctx := c.Request.Context()
@@ -110,6 +118,7 @@ func (h *PrHandler) SetIsActive(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// устанавливаем is_active
 	u, err := h.service.SetIsActive(ctx, input)
 	if err != nil {
 		if err.Error() == "NOT_FOUND" {
@@ -120,9 +129,11 @@ func (h *PrHandler) SetIsActive(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"user": u})
 }
 
+// GetUserReviews получает список PR, где пользователь назначен ревьювером
 func (h *PrHandler) GetUserReviews(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.GetOrCreateLoggerFromCtx(ctx)
@@ -131,6 +142,7 @@ func (h *PrHandler) GetUserReviews(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "NOT_FOUND", "message": "user_id required"}})
 		return
 	}
+	// получаем список PR ревьювера
 	out, err := h.service.GetUserReviews(ctx, userID)
 	if err != nil {
 		if err.Error() == "NOT_FOUND" {
@@ -141,11 +153,13 @@ func (h *PrHandler) GetUserReviews(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, out)
 }
 
 // ==================== Pull Request Handlers ====================
 
+// CreatePullRequest создает PR и назначает до 2 ревьюверов
 func (h *PrHandler) CreatePullRequest(c *gin.Context) {
 	var input models.CreatePullRequestInput
 	ctx := c.Request.Context()
@@ -155,6 +169,7 @@ func (h *PrHandler) CreatePullRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// создаем PR
 	pr, err := h.service.CreatePullRequest(ctx, input)
 	if err != nil {
 		switch err.Error() {
@@ -170,9 +185,11 @@ func (h *PrHandler) CreatePullRequest(c *gin.Context) {
 			return
 		}
 	}
+
 	c.JSON(http.StatusCreated, gin.H{"pr": pr})
 }
 
+// MergePullRequest помечает PR как MERGED (идемпотентно)
 func (h *PrHandler) MergePullRequest(c *gin.Context) {
 	var input models.MergePullRequestInput
 	ctx := c.Request.Context()
@@ -182,6 +199,7 @@ func (h *PrHandler) MergePullRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// мержим PR
 	pr, err := h.service.MergePullRequest(ctx, input)
 	if err != nil {
 		if err.Error() == "NOT_FOUND" {
@@ -192,9 +210,11 @@ func (h *PrHandler) MergePullRequest(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"pr": pr})
 }
 
+// ReassignReviewer переназначает ревьювера на другого из команды
 func (h *PrHandler) ReassignReviewer(c *gin.Context) {
 	var input models.ReassignReviewerInput
 	ctx := c.Request.Context()
@@ -204,6 +224,7 @@ func (h *PrHandler) ReassignReviewer(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// переназначаем ревьювера
 	out, err := h.service.ReassignReviewer(ctx, input)
 	if err != nil {
 		switch err.Error() {
@@ -225,14 +246,16 @@ func (h *PrHandler) ReassignReviewer(c *gin.Context) {
 			return
 		}
 	}
+
 	c.JSON(http.StatusOK, gin.H{"pr": out.PR, "replaced_by": out.ReplacedBy})
 }
 
 // ==================== Health Handler ====================
 
+// HealthCheck проверка здоровья сервиса
 func (h *PrHandler) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-// Compile-time check that PrHandler implements AllHandlers
+// проверка реализации интерфейса AllHandlers
 var _ AllHandlers = (*PrHandler)(nil)

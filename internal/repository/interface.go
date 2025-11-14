@@ -8,12 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type DB interface {
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-}
-
 // TeamModel представляет команду в БД
 type TeamModel struct {
 	ID        int64     `db:"id"`
@@ -162,6 +156,18 @@ type PRReviewerRepository interface {
 
 	// CountReviewersByPRID подсчитывает количество ревьюверов на PR
 	CountReviewersByPRID(ctx context.Context, prID string) (int, error)
+}
+
+// DB интерфейс для взаимодействия с БД
+type DB interface {
+	// Exec выполняет SQL команду
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
+
+	// Query выполняет SQL запрос и возвращает строки
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+
+	// QueryRow выполняет SQL запрос и возвращает одну строку
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 }
 
 // Repository объединяет все репозиторные интерфейсы

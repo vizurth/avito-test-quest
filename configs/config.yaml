@@ -1,4 +1,4 @@
-# Конфигурация базы данных PostgreSQL
+# конфигурация базы данных PostgreSQL
 postgres:
   host: "postgres"
   port: 5432
@@ -8,7 +8,7 @@ postgres:
   max_conns: 10
   min_conns: 5
 
-# Конфигурация PR сервиса
+# конфигурация PR сервиса
 pr:
-  host: avito-service          # Слушаем на всех интерфейсах
-  port: 9091                  # Порт из docker-compose
+  host: avito-service
+  port: 9091
