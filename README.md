@@ -8,6 +8,7 @@ REST API сервис для управления командами, польз
 - **Управление командами и пользователями** — создание команд, добавление участников, управление статусом активности
 - **Управление PR** — создание, мерж PR, переназначение ревьюверов
 - **Получение PR для ревьювера** — просмотр всех PR, где пользователь назначен ревьювером
+- **Статистика** — получение статистики по количеству назначений ревьюверов и PR
 - **Структурированное логирование** — используется `zap` для логирования операций
 
 ## Технологический стек
@@ -275,6 +276,64 @@ build/           # Docker файлы
 ```json
 {
 	"status": "ok"
+}
+```
+
+---
+
+### Statistics
+
+#### `GET /stats` — Получить статистику
+
+Возвращает статистику по ревьюверам и Pull Request'ам. Статистика включает:
+
+- **Reviewer Stats** — количество назначений (сколько раз каждый пользователь назначен ревьювером) на PR, отсортировано по убыванию
+- **PR Stats** — количество назначенных ревьюверов на каждый PR, отсортировано по убыванию
+
+**Response:** 200 OK
+
+```json
+{
+	"reviewer_stats": [
+		{
+			"user_id": "u2",
+			"username": "Bob",
+			"assigned_count": 5
+		},
+		{
+			"user_id": "u3",
+			"username": "Charlie",
+			"assigned_count": 3
+		},
+		{
+			"user_id": "u1",
+			"username": "Alice",
+			"assigned_count": 0
+		}
+	],
+	"pr_stats": [
+		{
+			"pull_request_id": "pr-1001",
+			"pull_request_name": "Add search functionality",
+			"author_id": "u1",
+			"status": "OPEN",
+			"reviewer_count": 2
+		},
+		{
+			"pull_request_id": "pr-1002",
+			"pull_request_name": "Fix bug in login",
+			"author_id": "u3",
+			"status": "MERGED",
+			"reviewer_count": 2
+		},
+		{
+			"pull_request_id": "pr-1003",
+			"pull_request_name": "Update dependencies",
+			"author_id": "u2",
+			"status": "OPEN",
+			"reviewer_count": 1
+		}
+	]
 }
 ```
 
