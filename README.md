@@ -74,7 +74,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 #### `GET /team/get?team_name=<name>` — Получить команду по имени
 
@@ -96,7 +95,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 ### Users
 
@@ -126,7 +124,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 #### `GET /users/getReview?user_id=<id>` — Получить PR, где пользователь назначен ревьювером
 
@@ -158,7 +155,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 ### Pull Requests
 
@@ -192,7 +188,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 #### `POST /pullRequest/merge` — Пометить PR как merged
 
@@ -222,7 +217,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 #### `POST /pullRequest/reassign` — Переназначить ревьювера
 
@@ -263,7 +257,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 ### Health
 
@@ -279,7 +272,6 @@ build/           # Docker файлы
 }
 ```
 
----
 
 ### Statistics
 
