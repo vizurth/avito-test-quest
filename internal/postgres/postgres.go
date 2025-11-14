@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -49,8 +51,28 @@ func Migrate(ctx context.Context, cfg Config) error {
 	connString := cfg.GetConnString()
 	log := logger.GetOrCreateLoggerFromCtx(ctx)
 
-	// создаем миграции
-	m, err := migrate.New("file://migrations", connString)
+	// Ищем директорию с миграциями в нескольких местах
+	migrationPaths := []string{
+		"migrations",
+		"./migrations",
+		"../migrations",
+		"../../migrations",
+	}
+
+	var migrationPath string
+	for _, path := range migrationPaths {
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
+			migrationPath, _ = filepath.Abs(path)
+			break
+		}
+	}
+
+	if migrationPath == "" {
+		return fmt.Errorf("migrations directory not found")
+	}
+
+	// создаем миграции с найденным путем
+	m, err := migrate.New("file://"+migrationPath, connString)
 
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
