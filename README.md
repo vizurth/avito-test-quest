@@ -40,6 +40,38 @@ configs/         # Файлы конфигурации
 build/           # Docker файлы
 ```
 
+## Установка и запуск
+
+### 1. Клонирование репозитория
+
+```bash
+git clone https://github.com/vizurth/avito-test-quest.git
+cd avito-test-quest
+```
+
+### 2. Запуск сервиса
+
+Используйте Makefile команды для управления сервисом:
+
+```bash
+# Запустить сервис в фоне с пересборкой образа
+make up
+
+# Остановить сервис
+make down
+
+# Перезагрузить сервис (down + up)
+make restart
+
+# Пересобрать Docker образ
+make build_and
+```
+
+Сервис запустится на `http://localhost:8080`.
+
+Все миграции БД применяются автоматически при запуске приложения через `golang-migrate`.
+
+
 ## API Endpoints
 
 ### Teams
@@ -345,44 +377,6 @@ build/           # Docker файлы
 - Мерж PR (включая идемпотентные операции)
 - Переназначение ревьюверов
 - Тестирование ошибок (404, 409 и т.д.)
-
-## Требования
-
-- Docker и Docker Compose
-- Makefile (для управления сервисом)
-- Go 1.21+
-- golangci-lint (устанавливается через `make install-golangci-lint`)
-
-## Установка и запуск
-
-### 1. Клонирование репозитория
-
-```bash
-git clone https://github.com/vizurth/avito-test-quest.git
-cd avito-test-quest
-```
-
-### 2. Запуск сервиса
-
-Используйте Makefile команды для управления сервисом:
-
-```bash
-# Запустить сервис в фоне с пересборкой образа
-make up
-
-# Остановить сервис
-make down
-
-# Перезагрузить сервис (down + up)
-make restart
-
-# Пересобрать Docker образ
-make build_and
-```
-
-Сервис запустится на `http://localhost:8080`.
-
-Все миграции БД применяются автоматически при запуске приложения через `golang-migrate`.
 
 ## Разработка
 
